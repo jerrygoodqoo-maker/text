@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#15201b">
+<title>小撲 · 德撲策略教練</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#0e1512;--panel:#15201b;--line:#25362e;--text:#e8efe9;--mute:#8fa598;--gold:#d9b45a;--me:#1f3a2e;--bot:#1a2621}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f1f4ef;--panel:#fff;--line:#d5ddd5;--text:#1b2a22;--mute:#5d7064;--gold:#9a7416;--me:#dcecdf;--bot:#fff;color-scheme:light}}
+*{box-sizing:border-box}
+html,body{height:100vh;height:100dvh;margin:0;overflow:hidden}
+body{background:var(--bg);color:var(--text);font:15px/1.65 -apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;display:flex;flex-direction:column}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--panel);flex-shrink:0}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand svg{width:44px;height:44px;flex:none;border-radius:50%;background:#26382f}
+.brand b{font-size:17px;letter-spacing:.05em}
+.brand small{display:block;color:var(--mute);font-size:12px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.actions{display:flex;gap:6px;flex-shrink:0}
+.icon-btn{background:transparent;color:var(--mute);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;white-space:nowrap}
+.icon-btn:hover,.icon-btn.active{color:var(--gold);border-color:var(--gold)}
+#log{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;-webkit-overflow-scrolling:touch}
+.m{max-width:88%;padding:10px 13px;border-radius:14px;border:1px solid var(--line);word-wrap:break-word;overflow-wrap:anywhere}
+.m.bot{background:var(--bot);align-self:flex-start;border-top-left-radius:4px}
+.m.me{background:var(--me);align-self:flex-end;border-top-right-radius:4px}
+.m b{color:var(--gold)}
+.m code{background:rgba(127,127,127,.18);padding:1px 5px;border-radius:4px;font-size:13px}
+.m ul{margin:4px 0;padding-left:20px}
+.m p{margin:4px 0}
+#chips{display:flex;gap:8px;overflow-x:auto;padding:8px 14px 2px;flex-shrink:0;-webkit-overflow-scrolling:touch}
+#chips::-webkit-scrollbar{display:none}
+#chips button{flex:none;background:transparent;color:var(--gold);border:1px solid var(--gold);border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer}
+form{display:flex;gap:8px;padding:10px 14px 12px;flex-shrink:0}
+textarea{flex:1;resize:none;height:44px;max-height:120px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font:16px/1.4 -apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif}
+#send{background:var(--gold);color:#16130a;border:0;border-radius:12px;padding:0 18px;font-weight:700;font-size:15px;cursor:pointer;flex-shrink:0}
+#send:disabled{opacity:.5}
+.dim{color:var(--mute);font-size:12px;text-align:center;padding:2px 14px 4px;flex-shrink:0}
+
+/* 設定彈窗 */
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.68);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+#modal.open{display:flex}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;max-width:420px;width:100%;padding:18px;box-shadow:0 12px 32px rgba(0,0,0,.4)}
+.card h3{margin:0 0 8px;color:var(--gold);font-size:17px}
+.card p{margin:0 0 12px;font-size:13px;color:var(--mute);line-height:1.5}
+.card label{display:block;font-size:12px;color:var(--mute);margin:10px 0 4px}
+.card input,.card select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:15px}
+.card a{color:var(--gold)}
+.modal-btns{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.modal-btns button{padding:8px 14px;border-radius:10px;font-size:14px;cursor:pointer;border:1px solid var(--line);background:transparent;color:var(--text)}
+.modal-btns button.primary{background:var(--gold);color:#16130a;border:0;font-weight:700}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <svg viewBox="0 0 64 64" aria-label="小撲">
+      <path d="M8 64c0-14 10-19 24-19s24 5 24 19z" fill="#7b1e2b"/>
+      <text x="32" y="60" font-size="7" font-weight="700" fill="#f2e6c9" text-anchor="middle" font-family="Georgia,serif">NTU·POKER</text>
+      <rect x="27" y="38" width="10" height="9" fill="#d9a67c"/>
+      <ellipse cx="32" cy="29" rx="13" ry="14" fill="#e0b088"/>
+      <path d="M17 24c0-11 6-16 15-16s15 5 15 16z" fill="#1c1f26"/>
+      <path d="M14 25h36c4 0 6 1 6 3H14z" fill="#12141a"/>
+      <rect x="18" y="27" width="12" height="7" rx="2" fill="#050505"/>
+      <rect x="34" y="27" width="12" height="7" rx="2" fill="#050505"/>
+      <rect x="30" y="29" width="4" height="2" fill="#050505"/>
+      <rect x="26" y="40" width="12" height="2" rx="1" fill="#8a5a3c"/>
+    </svg>
+    <div>
+      <b>小撲</b>
+      <small>6-Max 100bb · GTO 底子 + 剝削手感</small>
+    </div>
+  </div>
+  <div class="actions">
+    <button type="button" class="icon-btn" id="clear-btn" title="清空目前對話">新牌局</button>
+    <button type="button" class="icon-btn" id="cfg-btn">⚙️ API</button>
+  </div>
+</header>
+
+<div id="log"></div>
+<div id="chips"></div>
+<div class="dim">教學用途，非即時 Solver；實戰請搭配桌況觀察與資金管理。</div>
+<form id="f">
+  <textarea id="t" placeholder="丟手牌、位置、行動線給小撲，例：BTN AJo 被 BB 3-Bet…" rows="1"></textarea>
+  <button id="send" type="submit">送出</button>
+</form>
+
+<!-- API 設定彈窗 -->
+<div id="modal">
+  <div class="card">
+    <h3>⚙️ 連線設定（跨裝置獨立運作）</h3>
+    <p>金鑰僅儲存在這台裝置的瀏覽器本機空間（localStorage），不會上傳至任何第三方伺服器。可至 <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a> 免費取得 Gemini API Key。</p>
+    <label for="api-key">Gemini API Key</label>
+    <input type="password" id="api-key" placeholder="貼上 AIzaSy 開頭的金鑰…">
+    <label for="api-model">模型選擇</label>
+    <select id="api-model">
+      <option value="gemini-2.5-flash">gemini-2.5-flash（速度快、免費額度高，推薦）</option>
+      <option value="gemini-2.5-pro">gemini-2.5-pro（深度推理，適合複雜多街分析）</option>
+    </select>
+    <div class="modal-btns">
+      <button type="button" id="cancel-cfg">取消</button>
+      <button type="button" class="primary" id="save-cfg">儲存設定</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const KB = `
+【人設】你是「小撲」，老練的現場德撲教練。穿大學T、戴帽子與墨鏡，撲克臉、話少、酷、偶爾冷幽默，不洩露情緒，但教得很實在、直言不諱。目標：把學員訓練成接近GTO的打法（混合頻率、多種下注尺度、依對手行動線決定Hero Call／棄牌），並教會何時偏離GTO做剝削調整。用繁體中文回答，口吻像坐在牌桌旁低聲指點。
+【輸出規則】結論先行，再給細節；簡單問題短答。善用粗體與條列，不要用表格。給範圍時要給頻率（例如「約70%下注、30%過牌」），不要只說「一定」。涉及混合策略要說明「為何混合」。重要判斷標註信心（高/中/低），並區分「GTO基準」「剝削調整」「純猜測」。缺關鍵資訊（位置、籌碼深度、對手類型、下注額、牌面）時只問最關鍵的一個問題。每次分析決策類問題，結尾加一行「這個答案最可能出錯的2點」。偶爾（不要每次）出一道小練習題考學員。不提供任何來源以外的精確數字假裝是Solver輸出；超出下方知識庫時要說明是推論。
+【知識庫：6-Max 100bb 基準】
+位置與開牌率：UTG 15–17%；HJ 19–21%；CO 27–30%；BTN 42–48%；SB 36–42%（Raise or Fold，不Limp）；BB防守35–55%。
+開牌尺度：UTG/HJ/CO/BTN 2.2–2.5bb；SB vs BB 3.0bb；對Limper隔離加注 3bb+每位Limper再加1bb。
+RFI：
+UTG~16%：AA–66；AKs–ATs,KQs–KJs,QJs,JTs,T9s；AKo–AQo,KQo；邊緣55,A9s,A5s,98s（後位激進時棄，桌風被動可加）。
+HJ~20%：AA–55；AKs–A8s,A5s–A4s,KQs–KTs,QJs–QTs,JTs,T9s,98s；AKo–AJo,KQo；邊緣44,A7s–A6s,K9s,87s,KJo。
+CO~28%：AA–33；AKs–A2s,KQs–K8s,QJs–Q9s,JTs–J9s,T9s–T8s,98s,87s,76s；AKo–ATo,KQo–KJo,QJo；邊緣22,K7s,Q8s,65s,A9o,JTo。
+BTN~45%：AA–22；AKs–A2s,KQs–K2s,QJs–Q5s,JTs–J7s,T9s–T7s,98s–96s,87s–86s,76s–75s,65s–64s,54s；AKo–A7o,KQo–K9o,QJo–Q9o,JTo–J9o,T9o；邊緣A6o–A4o,Q4s–Q2s,98o,87o（盲注緊弱可擴至50%+）。
+SB~40%：AA–22；AKs–A2s,KQs–K4s,QJs–Q6s,JTs–J7s,T9s–T7s,98s–96s,87s–86s,76s–75s,65s,54s；AKo–A8o,KQo–K9o,QJo–Q9o,JTo–J9o,T9o；邊緣A7o–A5o,K3s–K2s,87o。
+3-Bet原則：有位置或SB用線性3-Bet（最強+次強活牌）；BB用極化3-Bet（頂級強牌+A5s–A2s,K9s等阻斷牌邊緣同花），中等牌放跟注。
+3-Bet/4-Bet尺度：IP 3-Bet=對手開牌×3；OOP（SB/BB）×3.5–4（BTN開2.5→9–10bb）；4-Bet IP 為3-Bet的2.2–2.4倍（約20–22bb），OOP 2.5–2.7倍（約22–24bb）。
+開牌後面對3-Bet（核心：剔除易被支配的非同花高張KQo,AJo,KJo,ATo；同花連張JTs,T9s,98s與中對99–66有位置時隱含賠率佳）：
+UTG開 vs MP/CO 3-Bet（OOP）：4-Bet價值AA,KK,AKs（QQ,AKo混合）；詐唬A5s,A4s低頻；跟注QQ–99,AKo,AQs–AJs,KQs；棄ATo,KQo,KJs,QJs,88–66。
+CO開 vs BTN 3-Bet（OOP）：4-Bet價值AA–QQ,AKs–AKo；詐唬A5s–A4s,KJs,QJs部分頻率；跟注JJ–77,AQs–ATs,KQs,JTs,T9s,98s；棄AJo–ATo,KQo–KJo,QJo,66–33。
+CO開 vs SB/BB 3-Bet（IP）：4-Bet價值AA–JJ,AKs–AKo,AQs；詐唬A5s–A3s,KTs,QTs,J9s；跟注TT–55,AJs–A9s,KQs–KJs,QJs,JTs,T9s,98s,87s,AQo；棄ATo,KJo,QJo,44–33。
+BTN開 vs SB/BB 3-Bet（IP）：4-Bet價值AA–TT,AKs–AQo；詐唬A9s–A6s,A5s–A2s,K9s,Q9s,J9s,T8s混合；跟注99–44,AJs–A8s,KQs–KTs,QJs–QTs,JTs,T9s,98s,87s,76s,65s,AJo,KQo；棄ATo–A7o,KJo–K9o,QJo–Q9o,33–22；BTN需防守約50–55%。
+SB開 vs BB 3-Bet（OOP）：4-Bet價值AA–TT,AKs–AQo,AJs；詐唬A5s–A2s,K9s,Q9s,J8s,T8s；跟注99–55,ATs–A8s,KQs–KTs,QJs–QTs,JTs,T9s,98s,87s,AJo,KQo；棄KTo,QTo,JTo,A9o等弱非同花與無連張低同花。
+翻牌後核心：範圍優勢決定下注「頻率」；堅果優勢決定下注「尺度」。不要100% CBet。
+高張乾燥彩虹（A♠K♦4♣、K♥8♣2♦）：進攻方壓倒性優勢。IP 75–90%頻率、25–33%小注全範圍；OOP 60–75%、33%小注，被過牌加注輕鬆棄弱牌。
+公對乾燥（Q♠Q♦5♣、7♥7♣2♠）：IP 80–95%、25–30%極小注；OOP 65–80%、33%小注保護中對。
+中低連張濕潤（9♥8♥6♣、7♠6♠5♦）：防守方（BB）有兩對/暗三/順子堅果優勢。IP 30–45%極化、66–75%大注（超強牌+強聽牌，無聽牌高張過牌）；OOP 過牌70%+，只用超強牌與強組合聽牌大注。
+單花色（J♠8♠3♠、A♥6♥2♥）：IP 35–50%、25–33%小注；OOP 過牌75%+，無同花別亂開火，保留強同花保護過牌範圍。
+動態兩高張（Q♥J♥4♣、K♠T♠3♦）：IP 50–65%、50–75%中大注收聽牌價值；OOP 40–50%，小注大注混合，弱頂對/中對過牌控池。
+轉牌：好開第二槍——高張驚悚牌（8♣5♦2♠後掉A/K）用純詐唬施壓；聽牌完成牌且我方有關鍵阻斷牌（如單張同花A）或後門權益時大注施壓。該減速——低張公對牌（K♠7♦4♣後掉4/7，防守方三條更多，空氣放棄，KJ/99過牌控池）；完全空白牌（2♦）且翻牌已被跟注，純空氣（無聽牌無高張）停火，只留半詐唬或強頂對以上。
+河牌：薄價值——對手翻牌轉牌皆過牌-跟注（範圍封頂），安全河牌TPTK甚至強中對可下33–50%底池。河牌詐唬遵守阻斷牌優先：選錯失聽牌且阻斷對手「跟注範圍」的牌（同花完成面持單張A同花超池詐唬）；別用阻斷對手「棄牌範圍」的牌硬詐唬。抓詐唬：優先用「不阻斷對手錯失聽牌」的牌（紅心聽牌錯失時，沒有紅心的頂對/中對是最佳跟注候選）。
+速查：A）UTG/HJ開AJo或KQo被3-Bet→直接棄。B）BTN開被BB跟注，翻7♠6♦5♣→高頻過牌控池或極化大注（BB堅果優勢）。C）UTG開被BTN跟注，翻A♦9♣3♠→高頻小注25–33%。D）3-Bet底池IP，翻K♠8♦3♣持A5s沒中→持續下注25–33%。
+【教學風格補充】混合下注：說明「小注高頻吃全範圍、大注低頻極化」的邏輯，並給學員可執行的簡化版（如用骰子/手牌花色決定混合）。Hero Call：用「行動線」推演——對手範圍怎麼走到這條線、哪些價值組合/詐唬組合存在、我的牌有無阻斷、賠率需要多少勝率（底池賠率公式：跟注額÷(底池+跟注額)）。剝削：先講GTO基準，再依對手類型（過度跟注站、過度棄牌、激進3-Bet、被動）說明偏離方向與幅度，並提醒「對樣本不足的讀牌保持懷疑」。學員反駁時先重新檢查邏輯再決定是否改口，別為了順從而改答案。`;
+
+const STARTER_CHIPS = [
+  "BTN 該開哪些牌？",
+  "被 3-Bet 怎麼辦？",
+  "A♠K♦4♣ 怎麼 CBet？",
+  "教我混合下注尺度",
+  "河牌被大注，要不要 Hero Call？",
+  "給我出一題練習"
+];
+
+const KEY_STORAGE = 'xiaopu_gemini_api_key';
+const MODEL_STORAGE = 'xiaopu_gemini_model';
+
+const log = document.getElementById('log');
+const t = document.getElementById('t');
+const f = document.getElementById('f');
+const send = document.getElementById('send');
+const chipBox = document.getElementById('chips');
+const modal = document.getElementById('modal');
+const cfgBtn = document.getElementById('cfg-btn');
+const clearBtn = document.getElementById('clear-btn');
+const apiKeyInput = document.getElementById('api-key');
+const apiModelSelect = document.getElementById('api-model');
+
+let hist = [];
+let busy = false;
+
+function esc(s) {
+  return s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+}
+
+function inl(s) {
+  return s.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/`(.+?)`/g, '<code>$1</code>');
+}
+
+function md(s) {
+  const L = esc(s).split('\n');
+  let out = '', ul = false;
+  for (const l of L) {
+    const li = l.match(/^\s*[-*•]\s+(.*)/);
+    if (li) {
+      if (!ul) { out += '<ul>'; ul = true; }
+      out += '<li>' + inl(li[1]) + '</li>';
+      continue;
+    }
+    if (ul) { out += '</ul>'; ul = false; }
+    const h = l.replace(/^#+\s*/, '');
+    if (h.trim()) out += '<p>' + inl(h) + '</p>';
+  }
+  return out + (ul ? '</ul>' : '');
+}
+
+function add(role, text) {
+  const d = document.createElement('div');
+  d.className = 'm ' + role;
+  d.innerHTML = role === 'me' ? '<p>' + esc(text) + '</p>' : md(text);
+  log.appendChild(d);
+  log.scrollTop = log.scrollHeight;
+  return d;
+}
+
+function updateKeyBadge() {
+  const hasKey = !!localStorage.getItem(KEY_STORAGE);
+  cfgBtn.textContent = hasKey ? '⚙️ 已連線' : '⚙️ 設定 Key';
+  cfgBtn.classList.toggle('active', !hasKey);
+}
+
+function openModal() {
+  apiKeyInput.value = localStorage.getItem(KEY_STORAGE) || '';
+  apiModelSelect.value = localStorage.getItem(MODEL_STORAGE) || 'gemini-2.5-flash';
+  modal.classList.add('open');
+}
+
+function closeModal() {
+  modal.classList.remove('open');
+}
+
+function initWelcome() {
+  log.innerHTML = '';
+  hist = [];
+  chipBox.style.display = 'flex';
+  add('bot', '坐。\n我是**小撲**。別管我戴墨鏡，你的牌我不看，我只看你的決策。\n\n我會帶你把打法磨成接近 GTO：**混合頻率、多種尺度下注、用對手行動線決定 Hero Call**，再教你什麼時候該偏離、怎麼剝削。\n\n- 丟我**位置＋手牌＋行動線＋下注額**，我給結論再拆理由\n- 或點下面的題目開始');
+}
+
+async function ask(text) {
+  if (busy || !text.trim()) return;
+
+  const apiKey = (localStorage.getItem(KEY_STORAGE) || '').trim();
+  if (!apiKey) {
+    openModal();
+    return;
+  }
+
+  const model = localStorage.getItem(MODEL_STORAGE) || 'gemini-2.5-flash';
+  busy = true;
+  send.disabled = true;
+  chipBox.style.display = 'none';
+
+  add('me', text);
+  hist.push({ role: 'user', parts: [{ text }] });
+  const bub = add('bot', '…（壓低帽簷，盯著籌碼）');
+
+  try {
+    let recent = hist.slice(-12);
+    if (recent[0].role !== 'user') recent = recent.slice(1);
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: KB }] },
+        contents: recent,
+        generationConfig: { temperature: 0.7 }
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw { status: res.status, message: data?.error?.message || 'API Error' };
+    }
+
+    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!reply) throw { status: 500, message: 'Empty response' };
+
+    bub.innerHTML = md(reply);
+    hist.push({ role: 'model', parts: [{ text: reply }] });
+  } catch (e) {
+    hist.pop();
+    if (e.status === 400 || e.status === 403) {
+      bub.innerHTML = md('**籌碼驗證沒過。** API Key 無效或已過期，點右上角「⚙️」重新檢查金鑰。');
+    } else if (e.status === 429) {
+      bub.innerHTML = md('慢點，牌局不急。免費額度每分鐘請求達上限，等個幾秒再問。');
+    } else {
+      bub.innerHTML = md('剛剛牌桌斷線了（' + esc(e.message || '網路異常') + '），再問一次。');
+    }
+  } finally {
+    busy = false;
+    send.disabled = false;
+    log.scrollTop = log.scrollHeight;
+    t.focus();
+  }
+}
+
+f.addEventListener('submit', e => {
+  e.preventDefault();
+  const v = t.value;
+  if (!v.trim()) return;
+  if (!localStorage.getItem(KEY_STORAGE)) {
+    openModal();
+    return;
+  }
+  t.value = '';
+  ask(v);
+});
+
+t.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+    e.preventDefault();
+    f.requestSubmit();
+  }
+});
+
+cfgBtn.addEventListener('click', openModal);
+document.getElementById('cancel-cfg').addEventListener('click', closeModal);
+document.getElementById('save-cfg').addEventListener('click', () => {
+  localStorage.setItem(KEY_STORAGE, apiKeyInput.value.trim());
+  localStorage.setItem(MODEL_STORAGE, apiModelSelect.value);
+  updateKeyBadge();
+  closeModal();
+});
+modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+clearBtn.addEventListener('click', initWelcome);
+
+STARTER_CHIPS.forEach(c => {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.textContent = c;
+  b.onclick = () => ask(c);
+  chipBox.appendChild(b);
+});
+
+updateKeyBadge();
+initWelcome();
+</script>
+</body>
+</html>
